@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"go-backend-training/internal/server"
+	"go-backend-training/internal/router"
 )
 
 func main() {
-	srv := server.New()
+	srv := router.New()
 
 	fmt.Println("Servidor corriendo en http://localhost:8080")
 
