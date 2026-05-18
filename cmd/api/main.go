@@ -1,18 +1,31 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
+	"go-backend-training/internal/handlers"
+	"go-backend-training/internal/stack"
 	"log"
-
-	"go-backend-training/internal/router"
+	"net/http"
 )
 
 func main() {
-	srv := router.New()
-
-	fmt.Println("Servidor corriendo en http://localhost:8080")
-
-	if err := srv.Start(":8080"); err != nil {
-		log.Fatalf("Error al iniciar el servidor: %v", err)
+	if err := run(); err != nil {
+		log.Fatal(err)
 	}
+}
+
+func run() error {
+
+	db, err := sql.Open("mysql", "root:@(127.0.0.1:3306)/stacksdbapi?parseTime=true")
+	if err != nil {
+		return err
+	}
+	repo := stack.NewStackRepository(db)
+	stackUseCase := stack.NewStackUseCase(repo)
+	stackHandler := handlers.NewStackHandler(stackUseCase)
+
+	http.HandleFunc("POST /application/{applicationName}/stacks", stackHandler.CreateStackHandler)
+	http.HandleFunc("GET /application/{applicationName}/stacks/{stackName}", stackHandler.SearchStackByNameHandler)
+
+	return http.ListenAndServe("localhost:8080", nil)
 }
