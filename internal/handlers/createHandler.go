@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"go-backend-training/internal/stack"
 	"net/http"
 )
@@ -26,9 +27,13 @@ func (h *Handler) CreateStackHandler(w http.ResponseWriter, r *http.Request) {
 		ApplicationName: applicationName,
 	}
 
-	resp, err := h.uc.PostStack(r.Context(), newStack)
+	resp, err := h.uc.CreateStack(r.Context(), newStack)
+	if errors.Is(err, stack.ErrStackAlreadyExists) {
+		http.Error(w, err.Error(), http.StatusConflict)
+		return
+	}
 	if err != nil {
-		http.Error(w, "failed to create stack", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -36,11 +41,11 @@ func (h *Handler) CreateStackHandler(w http.ResponseWriter, r *http.Request) {
 		Id:          resp.Id,
 		Name:        resp.Name,
 		Description: resp.Description,
+		SegmentName: resp.Segment.Name,
+		PurposeName: resp.Purpose.Name,
 	}
-
-	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(stackResponse); err != nil {
-		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
 }

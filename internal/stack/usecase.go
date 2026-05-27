@@ -3,7 +3,7 @@ package stack
 import "context"
 
 type UseCaseStack interface {
-	PostStack(ctx context.Context, stack Stack) (Stack, error)
+	CreateStack(ctx context.Context, stack Stack) (Stack, error)
 	GetStackByName(ctx context.Context, applicationName string, stackName string) (Stack, error)
 	PutStack(ctx context.Context, stack Stack) (Stack, error)
 	DeleteStackByName(ctx context.Context, applicationName string, stackName string) error
